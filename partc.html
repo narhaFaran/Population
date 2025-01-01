@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualize an Array</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div>
+        <canvas id="population"></canvas>
+        <canvas id="growth"></canvas>
+        <canvas id="number"></canvas>
+        <canvas id="density"></canvas>
+    </div>
+</body>
+<script>
+    async function getData() {
+        const response = await fetch("world.csv");
+        const data = await response.text();
+
+        const rows = data.split("\n").slice(1);
+        const labels = [];
+        const population = [];
+        const growth = [];
+        const number = [];
+        const density = [];
+
+        rows.forEach(row => {
+            // Split the row by commas, but ignore commas inside quotes
+            const columns = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+
+            if (columns && columns.length >= 5) {
+                labels.push(columns[0].replace(/"/g, '')); // Remove quotes if present in the first column
+                population.push(parseFloat(columns[1].replace(/,/g, '').replace(/"/g, ''))); // Remove commas and quotes from population
+                growth.push(parseFloat(columns[2].replace('%', '').replace(/"/g, ''))); // Remove % and quotes from growth
+                number.push(parseFloat(columns[3].replace(/,/g, '').replace(/"/g, ''))); // Remove commas and quotes from number
+                density.push(parseFloat(columns[4].replace(/"/g, ''))); // Remove quotes from density
+            }
+        });
+
+        createChart(labels, population, "World Population 1951-2023", "population", "line");
+        createChart(labels, growth, "Population Growth 1951-2023 (Percentage)", "growth", "bar");
+        createChart(labels, number, "Population Increase 1951-2023", "number", "bar");
+        createChart(labels, density, "Population Density per Square Km 1951-2023", "density", "bar");
+    }
+
+    function createChart(labels, values, name, canvasId, chartType) {
+        const ctx = document.getElementById(canvasId).getContext("2d");
+        new Chart(ctx, {
+            type: chartType, 
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: name,
+                    data: values,
+                    backgroundColor: "rgba(75, 192, 192, 0.2)",
+                    borderColor: "rgba(75, 192, 192, 1)",
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    getData();
+</script>
+</html>
